@@ -2,10 +2,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'contracts/auth_repository.dart';
 import 'contracts/resident_repository.dart';
+import 'contracts/report_repository.dart';
 import 'contracts/visit_repository.dart';
 import 'contracts/visitor_repository.dart';
 import 'mock/mock_auth_repository.dart';
 import 'mock/mock_resident_repository.dart';
+import 'mock/mock_report_repository.dart';
 import 'mock/mock_visit_repository.dart';
 import 'mock/mock_visitor_repository.dart';
 
@@ -25,4 +27,8 @@ final visitorRepositoryProvider = Provider<VisitorRepository>(
 
 final visitRepositoryProvider = Provider<VisitRepository>(
   (ref) => MockVisitRepository(),
+);
+
+final reportRepositoryProvider = Provider<ReportRepository>(
+  (ref) => MockReportRepository(ref.watch(visitRepositoryProvider)),
 );

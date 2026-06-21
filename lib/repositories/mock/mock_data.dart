@@ -93,8 +93,8 @@ abstract final class MockData {
       id: 'visitor-002',
       fullName: 'Nana Yaa Asante',
       phoneNumber: '0552228877',
-      idType: VisitorIdType.voterId,
-      idNumber: '3456789012',
+      idType: VisitorIdType.studentReferenceNumber,
+      idNumber: 'SRC20260012',
       address: 'Adenta, Accra',
       notes: 'Frequent family visitor',
       createdAt: now.subtract(const Duration(days: 90)),
@@ -104,8 +104,8 @@ abstract final class MockData {
       id: 'visitor-003',
       fullName: 'Kofi Boateng',
       phoneNumber: '0203334466',
-      idType: VisitorIdType.driversLicense,
-      idNumber: 'DVLA-9012837',
+      idType: VisitorIdType.studentReferenceNumber,
+      idNumber: 'SRC20260037',
       address: 'East Legon, Accra',
       createdAt: now.subtract(const Duration(days: 40)),
       updatedAt: now.subtract(const Duration(days: 1)),
@@ -167,5 +167,26 @@ abstract final class MockData {
       checkOutAt: now.subtract(const Duration(days: 1)),
       status: VisitStatus.checkedOut,
     ),
+    for (var number = 4; number <= 15; number++)
+      Visit(
+        id: 'visit-${number.toString().padLeft(3, '0')}',
+        visitorId:
+            'visitor-${(((number - 1) % 3) + 1).toString().padLeft(3, '0')}',
+        residentId:
+            'resident-${(((number - 1) % 3) + 1).toString().padLeft(3, '0')}',
+        purpose: switch (number % 4) {
+          0 => 'Family visit',
+          1 => 'Academic group work',
+          2 => 'Deliver personal items',
+          _ => 'Social visit',
+        },
+        badgeId: 'badge-${(((number - 2) % 9) + 2).toString().padLeft(3, '0')}',
+        badgeNumber: 'V-${(((number - 2) % 9) + 2).toString().padLeft(3, '0')}',
+        checkedInByUserId: 'user-reception-001',
+        checkedOutByUserId: 'user-reception-001',
+        checkInAt: now.subtract(Duration(days: number - 2, hours: 3)),
+        checkOutAt: now.subtract(Duration(days: number - 2, hours: 1)),
+        status: VisitStatus.checkedOut,
+      ),
   ];
 }

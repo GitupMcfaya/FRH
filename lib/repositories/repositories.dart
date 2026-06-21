@@ -5,6 +5,7 @@ export 'contracts/visit_repository.dart';
 export 'contracts/visitor_repository.dart';
 export 'mock/mock_auth_repository.dart';
 export 'mock/mock_resident_repository.dart';
+export 'mock/mock_report_repository.dart';
 export 'mock/mock_visit_repository.dart';
 export 'mock/mock_visitor_repository.dart';
 export 'repository_providers.dart';

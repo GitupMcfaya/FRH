@@ -57,6 +57,15 @@ void main() {
 
       expect(visitor.toJson()['idType'], 'ghana_card');
       expect(Visitor.fromJson(visitor.toJson()), visitor);
+      expect(
+        visitor
+            .copyWith(
+              idType: VisitorIdType.studentReferenceNumber,
+              idNumber: 'SRC20260001',
+            )
+            .toJson()['idType'],
+        'student_reference_number',
+      );
     });
 
     test('Visit derives active state and elapsed duration', () {

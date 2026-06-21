@@ -34,7 +34,5 @@ Map<String, dynamic> _$VisitorToJson(_Visitor instance) => <String, dynamic>{
 
 const _$VisitorIdTypeEnumMap = {
   VisitorIdType.ghanaCard: 'ghana_card',
-  VisitorIdType.passport: 'passport',
-  VisitorIdType.driversLicense: 'drivers_license',
-  VisitorIdType.voterId: 'voter_id',
+  VisitorIdType.studentReferenceNumber: 'student_reference_number',
 };

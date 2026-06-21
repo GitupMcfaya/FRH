@@ -83,7 +83,7 @@ class MockVisitorRepository implements VisitorRepository {
     );
     if (duplicate) {
       throw ConflictException(
-        'A visitor with ID number ${visitor.idNumber} already exists.',
+        'A visitor with reference number ${visitor.idNumber} already exists.',
       );
     }
   }

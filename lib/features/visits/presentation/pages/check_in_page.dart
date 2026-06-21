@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
 import '../../../../core/errors/repository_exception.dart';
 import '../../../../core/session/active_role_provider.dart';
@@ -9,6 +8,7 @@ import '../../../../models/models.dart';
 import '../../../../repositories/contracts/visit_repository.dart';
 import '../../../residents/presentation/controllers/residents_controller.dart';
 import '../../../visitors/presentation/controllers/visitors_controller.dart';
+import '../../../visitors/presentation/pages/visitors_page.dart';
 import '../controllers/visits_controller.dart';
 
 class CheckInPage extends ConsumerStatefulWidget {
@@ -82,7 +82,8 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
                 ),
               ),
               OutlinedButton.icon(
-                onPressed: () => context.push('/visitors'),
+                key: const Key('inline-register-visitor'),
+                onPressed: _registerVisitorInline,
                 icon: const Icon(Icons.person_add_alt_1_rounded, size: 18),
                 label: const Text('Register New Visitor'),
               ),
@@ -128,7 +129,7 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
                   number: '2',
                   title: 'Select Visitor',
                   searchController: _visitorSearch,
-                  searchHint: 'Name, phone, or identity number',
+                  searchHint: 'Name, phone, Ghana Card, or student reference',
                   onSearch: (value) => setState(() => _visitorQuery = value),
                   loading: visitorsValue.isLoading,
                   emptyMessage: 'No visitors found.',
@@ -290,6 +291,22 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
     return visitor.fullName.toLowerCase().contains(term) ||
         visitor.phoneNumber.toLowerCase().contains(term) ||
         visitor.idNumber.toLowerCase().contains(term);
+  }
+
+  Future<void> _registerVisitorInline() async {
+    final visitor = await showDialog<Visitor>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const VisitorFormDialog(),
+    );
+    if (visitor == null || !mounted) return;
+
+    _visitorSearch.clear();
+    setState(() {
+      _visitorQuery = '';
+      _selectedVisitorId = visitor.id;
+      _error = null;
+    });
   }
 
   Future<void> _submit() async {
@@ -660,10 +677,8 @@ class _AvailabilityLabel extends StatelessWidget {
 }
 
 String _idTypeLabel(VisitorIdType type) => switch (type) {
-  VisitorIdType.ghanaCard => 'Ghana Card',
-  VisitorIdType.passport => 'Passport',
-  VisitorIdType.driversLicense => "Driver's License",
-  VisitorIdType.voterId => 'Voter ID',
+  VisitorIdType.ghanaCard => 'Ghana Card Number',
+  VisitorIdType.studentReferenceNumber => 'Student Reference Number',
 };
 
 String _formatTime(DateTime date) {

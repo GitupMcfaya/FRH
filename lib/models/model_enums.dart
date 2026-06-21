@@ -7,7 +7,7 @@ enum UserRole { administrator, receptionist }
 enum Gender { male, female, other, preferNotToSay }
 
 @JsonEnum(fieldRename: FieldRename.snake)
-enum VisitorIdType { ghanaCard, passport, driversLicense, voterId }
+enum VisitorIdType { ghanaCard, studentReferenceNumber }
 
 @JsonEnum(fieldRename: FieldRename.snake)
 enum VisitStatus { checkedIn, checkedOut, cancelled }

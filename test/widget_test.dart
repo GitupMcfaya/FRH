@@ -20,6 +20,14 @@ void main() {
     expect(find.text('Select Visitor'), findsOneWidget);
     expect(find.byKey(const Key('complete-check-in')), findsOneWidget);
 
+    await tester.tap(find.byKey(const Key('inline-register-visitor')));
+    await tester.pumpAndSettle();
+    expect(find.text('Register Visitor'), findsWidgets);
+    expect(find.byKey(const Key('visitor-full-name')), findsOneWidget);
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+    expect(find.text('Select Visitor'), findsOneWidget);
+
     await tester.tap(find.byTooltip('Back (Alt + Left Arrow)'));
     await tester.pumpAndSettle();
     expect(find.text('Good morning, Esi'), findsOneWidget);
@@ -31,6 +39,18 @@ void main() {
       findsOneWidget,
     );
     expect(find.byKey(const ValueKey('checkout-visit-001')), findsOneWidget);
+
+    await tester.tap(find.byTooltip('Back (Alt + Left Arrow)'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Visit History'));
+    await tester.pumpAndSettle();
+    expect(
+      find.text('Search, filter, and review completed hostel visits.'),
+      findsOneWidget,
+    );
+    expect(find.text('Page 1 of 3'), findsOneWidget);
+    expect(find.byTooltip('Next page'), findsOneWidget);
 
     await tester.tap(find.byTooltip('Back (Alt + Left Arrow)'));
     await tester.pumpAndSettle();
@@ -70,6 +90,22 @@ void main() {
     expect(find.text('User Management'), findsOneWidget);
     expect(find.text('Audit Logs'), findsOneWidget);
     expect(find.text('Settings'), findsOneWidget);
+
+    await tester.tap(find.text('Reports'));
+    await tester.pumpAndSettle();
+    expect(
+      find.text(
+        'Review visitor activity, patterns, and resident-level summaries.',
+      ),
+      findsOneWidget,
+    );
+    expect(find.text('Daily Report'), findsOneWidget);
+    expect(find.text('Monthly Report'), findsOneWidget);
+    expect(find.text('Resident Report'), findsOneWidget);
+    expect(find.text('Frequent Visitors'), findsOneWidget);
+
+    await tester.tap(find.byTooltip('Back (Alt + Left Arrow)'));
+    await tester.pumpAndSettle();
 
     await tester.tap(find.text('User Management'));
     await tester.pumpAndSettle();

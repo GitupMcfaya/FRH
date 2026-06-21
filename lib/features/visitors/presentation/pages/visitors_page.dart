@@ -75,7 +75,8 @@ class _VisitorsPageState extends ConsumerState<VisitorsPage> {
                   controller: _searchController,
                   onChanged: (value) => setState(() => _query = value),
                   decoration: InputDecoration(
-                    hintText: 'Search name, phone number, or identity number',
+                    hintText:
+                        'Search name, phone, Ghana Card, or student reference',
                     prefixIcon: const Icon(Icons.search_rounded, size: 20),
                     suffixIcon: _query.isEmpty
                         ? null
@@ -102,7 +103,7 @@ class _VisitorsPageState extends ConsumerState<VisitorsPage> {
                   items: [
                     const DropdownMenuItem<VisitorIdType?>(
                       value: null,
-                      child: Text('All ID types'),
+                      child: Text('All number types'),
                     ),
                     ...VisitorIdType.values.map(
                       (type) => DropdownMenuItem<VisitorIdType?>(
@@ -159,12 +160,12 @@ class _VisitorsPageState extends ConsumerState<VisitorsPage> {
   }
 
   Future<void> _showVisitorForm([Visitor? visitor]) async {
-    final saved = await showDialog<bool>(
+    final saved = await showDialog<Visitor>(
       context: context,
       barrierDismissible: false,
       builder: (_) => VisitorFormDialog(visitor: visitor),
     );
-    if (saved == true && mounted) {
+    if (saved != null && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -317,8 +318,8 @@ class _VisitorsTable extends StatelessWidget {
                         columns: const [
                           DataColumn(label: Text('VISITOR')),
                           DataColumn(label: Text('PHONE')),
-                          DataColumn(label: Text('ID TYPE')),
-                          DataColumn(label: Text('ID NUMBER')),
+                          DataColumn(label: Text('NUMBER TYPE')),
+                          DataColumn(label: Text('REFERENCE NUMBER')),
                           DataColumn(label: Text('ADDRESS')),
                           DataColumn(label: Text('UPDATED')),
                           DataColumn(label: Text('ACTIONS')),
@@ -556,7 +557,9 @@ class _VisitorFormDialogState extends ConsumerState<VisitorFormDialog> {
                     DropdownButtonFormField<VisitorIdType>(
                       isExpanded: true,
                       initialValue: _idType,
-                      decoration: const InputDecoration(labelText: 'ID type *'),
+                      decoration: const InputDecoration(
+                        labelText: 'Number type *',
+                      ),
                       items: VisitorIdType.values
                           .map(
                             (type) => DropdownMenuItem(
@@ -573,8 +576,10 @@ class _VisitorFormDialogState extends ConsumerState<VisitorFormDialog> {
                       key: const Key('visitor-id-number'),
                       controller: _idNumber,
                       textCapitalization: TextCapitalization.characters,
-                      decoration: const InputDecoration(
-                        labelText: 'ID number *',
+                      decoration: InputDecoration(
+                        labelText: _idType == VisitorIdType.ghanaCard
+                            ? 'Ghana Card number *'
+                            : 'Student reference number *',
                       ),
                       validator: (value) {
                         if (value == null || value.trim().isEmpty) {
@@ -584,8 +589,9 @@ class _VisitorFormDialogState extends ConsumerState<VisitorFormDialog> {
                             !GhanaValidators.isGhanaCardNumber(value)) {
                           return 'Use format GHA-000000000-0';
                         }
-                        if (value.trim().length < 5) {
-                          return 'ID number is too short';
+                        if (_idType == VisitorIdType.studentReferenceNumber &&
+                            !GhanaValidators.isStudentId(value)) {
+                          return 'Enter a valid student reference number';
                         }
                         return null;
                       },
@@ -623,7 +629,7 @@ class _VisitorFormDialogState extends ConsumerState<VisitorFormDialog> {
       ),
       actions: [
         TextButton(
-          onPressed: _saving ? null : () => Navigator.pop(context, false),
+          onPressed: _saving ? null : () => Navigator.pop(context),
           child: const Text('Cancel'),
         ),
         FilledButton(
@@ -664,12 +670,13 @@ class _VisitorFormDialogState extends ConsumerState<VisitorFormDialog> {
 
     try {
       final controller = ref.read(visitorsControllerProvider.notifier);
+      late final Visitor saved;
       if (existing == null) {
-        await controller.create(visitor);
+        saved = await controller.create(visitor);
       } else {
-        await controller.updateVisitor(visitor);
+        saved = await controller.updateVisitor(visitor);
       }
-      if (mounted) Navigator.pop(context, true);
+      if (mounted) Navigator.pop(context, saved);
     } on Object catch (error) {
       if (!mounted) return;
       setState(() {
@@ -710,10 +717,8 @@ class _FormRow extends StatelessWidget {
 }
 
 String _idTypeLabel(VisitorIdType type) => switch (type) {
-  VisitorIdType.ghanaCard => 'Ghana Card',
-  VisitorIdType.passport => 'Passport',
-  VisitorIdType.driversLicense => "Driver's License",
-  VisitorIdType.voterId => 'Voter ID',
+  VisitorIdType.ghanaCard => 'Ghana Card Number',
+  VisitorIdType.studentReferenceNumber => 'Student Reference Number',
 };
 
 String _formatDate(DateTime date) {

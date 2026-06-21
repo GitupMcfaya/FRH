@@ -5,6 +5,8 @@ import '../../features/residents/presentation/pages/residents_page.dart';
 import '../../features/visitors/presentation/pages/visitors_page.dart';
 import '../../features/visits/presentation/pages/check_in_page.dart';
 import '../../features/visits/presentation/pages/active_visitors_page.dart';
+import '../../features/visits/presentation/pages/visitor_history_page.dart';
+import '../../features/reports/presentation/pages/reports_page.dart';
 import '../../shared/presentation/pages/module_page.dart';
 import '../../shared/presentation/widgets/desktop_shell.dart';
 
@@ -25,18 +27,9 @@ final appRouter = GoRouter(
         ),
         GoRoute(
           path: '/history',
-          builder: (_, _) => const ModulePage(
-            title: 'Visitor History',
-            subtitle: 'Search completed and historical visits.',
-          ),
+          builder: (_, _) => const VisitorHistoryPage(),
         ),
-        GoRoute(
-          path: '/reports',
-          builder: (_, _) => const ModulePage(
-            title: 'Reports',
-            subtitle: 'Review and export hostel visitor activity.',
-          ),
-        ),
+        GoRoute(path: '/reports', builder: (_, _) => const ReportsPage()),
         GoRoute(
           path: '/settings',
           builder: (_, _) => const ModulePage(

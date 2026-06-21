@@ -97,8 +97,8 @@ void main() {
           id: '',
           fullName: 'Adwoa Serwaa',
           phoneNumber: '0249876543',
-          idType: VisitorIdType.passport,
-          idNumber: 'G1234567',
+          idType: VisitorIdType.studentReferenceNumber,
+          idNumber: 'SRC20260101',
           address: 'Osu, Accra',
           createdAt: now,
           updatedAt: now,
@@ -180,6 +180,28 @@ void main() {
         ),
         throwsA(isA<ConflictException>()),
       );
+    });
+  });
+
+  group('MockReportRepository', () {
+    test('builds daily, monthly, resident, and frequency summaries', () async {
+      final visits = MockVisitRepository(latency: noLatency);
+      final reports = MockReportRepository(visits);
+      final allVisits = await visits.getAll();
+      final reference = allVisits.first.checkInAt;
+
+      final daily = await reports.getDailyVisits(reference);
+      final monthly = await reports.getMonthlyVisits(
+        year: reference.year,
+        month: reference.month,
+      );
+      final resident = await reports.getResidentVisits('resident-001');
+      final frequency = await reports.getVisitorFrequency();
+
+      expect(daily, isNotEmpty);
+      expect(monthly, isNotEmpty);
+      expect(resident, isNotEmpty);
+      expect(frequency['visitor-001'], greaterThan(0));
     });
   });
 }
