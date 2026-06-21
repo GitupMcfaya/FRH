@@ -108,16 +108,46 @@ void main() {
     await tester.pumpAndSettle();
 
     await tester.tap(find.text('User Management'));
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
     expect(
-      find.text('Manage staff accounts and role assignments.'),
+      find.text('Manage staff profiles, roles, and account access.'),
+      findsOneWidget,
+    );
+    expect(find.byKey(const Key('add-user-button')), findsOneWidget);
+
+    await tester.tap(find.byTooltip('Back (Alt + Left Arrow)'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Settings'));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+    expect(
+      find.text('Configure hostel operations and visitor badge inventory.'),
+      findsOneWidget,
+    );
+    expect(find.text('Hostel Preferences'), findsOneWidget);
+    expect(find.text('Visitor Badges'), findsOneWidget);
+
+    await tester.tap(find.byTooltip('Back (Alt + Left Arrow)'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Audit Logs'));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+    expect(
+      find.text(
+        'Review sensitive administrative and visitor-processing actions.',
+      ),
       findsOneWidget,
     );
 
     await tester.tap(find.byKey(const Key('role-switcher')));
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
     await tester.tap(find.text('Receptionist').last);
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
 
     expect(find.text('Good morning, Esi'), findsOneWidget);
     expect(find.text('User Management'), findsNothing);

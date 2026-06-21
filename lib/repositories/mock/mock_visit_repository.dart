@@ -62,6 +62,51 @@ class MockVisitRepository implements VisitRepository {
   }
 
   @override
+  Future<VisitorBadge> createBadge(
+    String badgeNumber,
+    DateTime createdAt,
+  ) async {
+    await _wait();
+    final normalized = badgeNumber.trim().toUpperCase();
+    if (_badges.any((badge) => badge.badgeNumber == normalized)) {
+      throw ConflictException('Badge $normalized already exists.');
+    }
+    final badge = VisitorBadge(
+      id: 'badge-${(_badges.length + 1).toString().padLeft(3, '0')}',
+      badgeNumber: normalized,
+      status: VisitorBadgeStatus.available,
+      createdAt: createdAt,
+    );
+    _badges.add(badge);
+    return badge;
+  }
+
+  @override
+  Future<VisitorBadge> setBadgeUnavailable(
+    String badgeId,
+    bool unavailable,
+  ) async {
+    await _wait();
+    final index = _badges.indexWhere((badge) => badge.id == badgeId);
+    if (index == -1) {
+      throw RecordNotFoundException('Badge $badgeId was not found.');
+    }
+    final badge = _badges[index];
+    if (badge.status == VisitorBadgeStatus.assigned) {
+      throw ConflictException(
+        'Badge ${badge.badgeNumber} is assigned and cannot be disabled.',
+      );
+    }
+    final updated = badge.copyWith(
+      status: unavailable
+          ? VisitorBadgeStatus.unavailable
+          : VisitorBadgeStatus.available,
+    );
+    _badges[index] = updated;
+    return updated;
+  }
+
+  @override
   Future<Visit> checkIn(CheckInCommand command) async {
     await _wait();
     if (command.purpose.trim().isEmpty) {

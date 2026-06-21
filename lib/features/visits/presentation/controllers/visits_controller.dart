@@ -3,12 +3,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/errors/repository_exception.dart';
 import '../../../../models/models.dart';
 import '../../../../repositories/repositories.dart';
+import '../../../audit/presentation/controllers/audit_controller.dart';
 
 final visitsControllerProvider =
     AsyncNotifierProvider<VisitsController, List<Visit>>(VisitsController.new);
 
 final availableBadgesProvider = FutureProvider<List<VisitorBadge>>(
   (ref) => ref.read(visitRepositoryProvider).getAvailableBadges(),
+);
+
+final badgesProvider = FutureProvider<List<VisitorBadge>>(
+  (ref) => ref.read(visitRepositoryProvider).getBadges(),
 );
 
 class VisitsController extends AsyncNotifier<List<Visit>> {
@@ -21,6 +26,7 @@ class VisitsController extends AsyncNotifier<List<Visit>> {
       () => ref.read(visitRepositoryProvider).getAll(),
     );
     ref.invalidate(availableBadgesProvider);
+    ref.invalidate(badgesProvider);
   }
 
   Future<Visit> checkIn(CheckInCommand command) async {
@@ -47,6 +53,15 @@ class VisitsController extends AsyncNotifier<List<Visit>> {
     final visit = await ref.read(visitRepositoryProvider).checkIn(command);
     state = AsyncData(_sorted([...?state.value, visit]));
     ref.invalidate(availableBadgesProvider);
+    ref.invalidate(badgesProvider);
+    await ref
+        .read(auditControllerProvider.notifier)
+        .record(
+          action: AuditAction.checkIn,
+          entityType: AuditEntityType.visit,
+          entityId: visit.id,
+          description: 'Checked in visitor with badge ${visit.badgeNumber}.',
+        );
     return visit;
   }
 
@@ -69,7 +84,55 @@ class VisitsController extends AsyncNotifier<List<Visit>> {
       ]),
     );
     ref.invalidate(availableBadgesProvider);
+    ref.invalidate(badgesProvider);
+    await ref
+        .read(auditControllerProvider.notifier)
+        .record(
+          action: AuditAction.checkOut,
+          entityType: AuditEntityType.visit,
+          entityId: completed.id,
+          description:
+              'Checked out visitor and released badge ${completed.badgeNumber}.',
+        );
     return completed;
+  }
+
+  Future<VisitorBadge> createBadge(String badgeNumber) async {
+    final badge = await ref
+        .read(visitRepositoryProvider)
+        .createBadge(badgeNumber, DateTime.now());
+    ref.invalidate(availableBadgesProvider);
+    ref.invalidate(badgesProvider);
+    await ref
+        .read(auditControllerProvider.notifier)
+        .record(
+          action: AuditAction.settingsUpdated,
+          entityType: AuditEntityType.badge,
+          entityId: badge.id,
+          description: 'Created visitor badge ${badge.badgeNumber}.',
+        );
+    return badge;
+  }
+
+  Future<VisitorBadge> setBadgeUnavailable(
+    String badgeId,
+    bool unavailable,
+  ) async {
+    final badge = await ref
+        .read(visitRepositoryProvider)
+        .setBadgeUnavailable(badgeId, unavailable);
+    ref.invalidate(availableBadgesProvider);
+    ref.invalidate(badgesProvider);
+    await ref
+        .read(auditControllerProvider.notifier)
+        .record(
+          action: AuditAction.settingsUpdated,
+          entityType: AuditEntityType.badge,
+          entityId: badge.id,
+          description:
+              '${unavailable ? 'Disabled' : 'Enabled'} visitor badge ${badge.badgeNumber}.',
+        );
+    return badge;
   }
 
   List<Visit> _sorted(List<Visit> visits) {

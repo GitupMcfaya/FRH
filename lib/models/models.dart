@@ -1,5 +1,6 @@
 export 'audit_log.dart';
 export 'model_enums.dart';
+export 'hostel_settings.dart';
 export 'resident.dart';
 export 'user.dart';
 export 'visit.dart';

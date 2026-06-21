@@ -181,6 +181,22 @@ void main() {
         throwsA(isA<ConflictException>()),
       );
     });
+
+    test('creates badges and prevents disabling assigned badges', () async {
+      final created = await repository.createBadge(
+        'V-011',
+        DateTime.utc(2026, 6, 21),
+      );
+      expect(created.isAvailable, isTrue);
+
+      final disabled = await repository.setBadgeUnavailable(created.id, true);
+      expect(disabled.status, VisitorBadgeStatus.unavailable);
+
+      expect(
+        () => repository.setBadgeUnavailable('badge-001', true),
+        throwsA(isA<ConflictException>()),
+      );
+    });
   });
 
   group('MockReportRepository', () {

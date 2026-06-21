@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/errors/repository_exception.dart';
+import '../../../../core/services/report_export_service.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../models/models.dart';
 import '../../../residents/presentation/controllers/residents_controller.dart';
@@ -24,6 +25,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
   var _year = DateTime.now().year;
   String? _residentId;
   late DateTimeRange _frequentRange;
+  var _exporting = false;
 
   @override
   void initState() {
@@ -85,6 +87,34 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
                     ref.read(visitsControllerProvider.notifier).refresh(),
                 icon: const Icon(Icons.refresh_rounded, size: 18),
                 label: const Text('Refresh Data'),
+              ),
+              const SizedBox(width: 8),
+              OutlinedButton.icon(
+                key: const Key('export-report-pdf'),
+                onPressed: _exporting
+                    ? null
+                    : () => _export(
+                        pdf: true,
+                        visits: filteredVisits,
+                        residents: residentMap,
+                        visitors: visitorMap,
+                      ),
+                icon: const Icon(Icons.picture_as_pdf_outlined, size: 18),
+                label: const Text('PDF'),
+              ),
+              const SizedBox(width: 8),
+              FilledButton.icon(
+                key: const Key('export-report-excel'),
+                onPressed: _exporting
+                    ? null
+                    : () => _export(
+                        pdf: false,
+                        visits: filteredVisits,
+                        residents: residentMap,
+                        visitors: visitorMap,
+                      ),
+                icon: const Icon(Icons.table_view_outlined, size: 18),
+                label: Text(_exporting ? 'Exporting...' : 'Excel'),
               ),
             ],
           ),
@@ -210,6 +240,85 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
       helpText: 'Frequent visitor period',
     );
     if (selected != null) setState(() => _frequentRange = selected);
+  }
+
+  Future<void> _export({
+    required bool pdf,
+    required List<Visit> visits,
+    required Map<String, Resident> residents,
+    required Map<String, Visitor> visitors,
+  }) async {
+    setState(() => _exporting = true);
+    try {
+      final title = _reportTitle(_reportType);
+      late final List<String> headers;
+      late final List<List<String>> rows;
+      if (_reportType == _ReportType.frequent) {
+        final counts = _visitorCounts(visits);
+        final ranked = counts.entries.toList()
+          ..sort((a, b) => b.value.compareTo(a.value));
+        headers = ['Rank', 'Visitor', 'Phone', 'Reference Number', 'Visits'];
+        rows = [
+          for (var index = 0; index < ranked.length; index++)
+            [
+              '${index + 1}',
+              visitors[ranked[index].key]?.fullName ?? 'Unknown',
+              visitors[ranked[index].key]?.phoneNumber ?? '—',
+              visitors[ranked[index].key]?.idNumber ?? '—',
+              '${ranked[index].value}',
+            ],
+        ];
+      } else {
+        headers = [
+          'Date',
+          'Visitor',
+          'Resident',
+          'Room',
+          'Purpose',
+          'Badge',
+          'Duration',
+          'Status',
+        ];
+        rows = [
+          for (final visit in visits)
+            [
+              _formatDateTime(visit.checkInAt),
+              visitors[visit.visitorId]?.fullName ?? 'Unknown',
+              residents[visit.residentId]?.fullName ?? 'Unknown',
+              residents[visit.residentId] == null
+                  ? '—'
+                  : '${residents[visit.residentId]!.block}-${residents[visit.residentId]!.roomNumber}',
+              visit.purpose,
+              visit.badgeNumber,
+              _formatDuration(
+                visit.durationAt(visit.checkOutAt ?? DateTime.now()),
+              ),
+              _statusLabel(visit.status),
+            ],
+        ];
+      }
+      const exporter = ReportExportService();
+      final path = pdf
+          ? await exporter.exportPdf(title: title, headers: headers, rows: rows)
+          : await exporter.exportExcel(
+              title: title,
+              headers: headers,
+              rows: rows,
+            );
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Report saved to $path')));
+      }
+    } on Object catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Export failed: $error')));
+      }
+    } finally {
+      if (mounted) setState(() => _exporting = false);
+    }
   }
 
   static String _errorMessage(Object error) => switch (error) {
@@ -831,6 +940,13 @@ String _reportDescription(_ReportType type) => switch (type) {
   _ReportType.monthly => 'Monthly visitor activity',
   _ReportType.resident => 'Visits received by one resident',
   _ReportType.frequent => 'Visitors ranked by frequency',
+};
+
+String _reportTitle(_ReportType type) => switch (type) {
+  _ReportType.daily => 'UniHostel Daily Visitor Report',
+  _ReportType.monthly => 'UniHostel Monthly Visitor Report',
+  _ReportType.resident => 'UniHostel Resident Visitor Report',
+  _ReportType.frequent => 'UniHostel Frequent Visitors Report',
 };
 
 String _statusLabel(VisitStatus status) => switch (status) {

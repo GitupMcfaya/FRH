@@ -2,7 +2,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/errors/repository_exception.dart';
 import '../../../../models/visitor.dart';
+import '../../../../models/model_enums.dart';
 import '../../../../repositories/repository_providers.dart';
+import '../../../audit/presentation/controllers/audit_controller.dart';
 
 final visitorsControllerProvider =
     AsyncNotifierProvider<VisitorsController, List<Visitor>>(
@@ -25,6 +27,14 @@ class VisitorsController extends AsyncNotifier<List<Visitor>> {
   Future<Visitor> create(Visitor visitor) async {
     final created = await ref.read(visitorRepositoryProvider).create(visitor);
     state = AsyncData(_sorted([...?state.value, created]));
+    await ref
+        .read(auditControllerProvider.notifier)
+        .record(
+          action: AuditAction.visitorCreated,
+          entityType: AuditEntityType.visitor,
+          entityId: created.id,
+          description: 'Registered visitor ${created.fullName}.',
+        );
     return created;
   }
 
@@ -36,6 +46,14 @@ class VisitorsController extends AsyncNotifier<List<Visitor>> {
           if (item.id == updated.id) updated else item,
       ]),
     );
+    await ref
+        .read(auditControllerProvider.notifier)
+        .record(
+          action: AuditAction.visitorUpdated,
+          entityType: AuditEntityType.visitor,
+          entityId: updated.id,
+          description: 'Updated visitor ${updated.fullName}.',
+        );
     return updated;
   }
 
@@ -52,6 +70,14 @@ class VisitorsController extends AsyncNotifier<List<Visitor>> {
         (state.value ?? const <Visitor>[]).where((visitor) => visitor.id != id),
       ),
     );
+    await ref
+        .read(auditControllerProvider.notifier)
+        .record(
+          action: AuditAction.visitorUpdated,
+          entityType: AuditEntityType.visitor,
+          entityId: id,
+          description: 'Deleted a visitor record without visit history.',
+        );
   }
 
   List<Visitor> _sorted(List<Visitor> visitors) {

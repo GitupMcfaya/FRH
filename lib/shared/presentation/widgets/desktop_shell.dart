@@ -396,9 +396,9 @@ class _TopBar extends StatelessWidget {
             ),
             if (constraints.maxWidth >= 1200) ...[
               const SizedBox(width: 14),
-              const Text(
-                'Friday, 20 June 2026',
-                style: TextStyle(
+              Text(
+                _formatLongDate(DateTime.now()),
+                style: const TextStyle(
                   color: AppColors.muted,
                   fontSize: 13,
                   fontWeight: FontWeight.w500,
@@ -456,4 +456,31 @@ class _AccessDeniedPage extends StatelessWidget {
       ),
     );
   }
+}
+
+String _formatLongDate(DateTime date) {
+  const weekdays = [
+    'Monday',
+    'Tuesday',
+    'Wednesday',
+    'Thursday',
+    'Friday',
+    'Saturday',
+    'Sunday',
+  ];
+  const months = [
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December',
+  ];
+  return '${weekdays[date.weekday - 1]}, ${date.day} ${months[date.month - 1]} ${date.year}';
 }

@@ -34,6 +34,10 @@ abstract interface class VisitRepository {
 
   Future<List<VisitorBadge>> getAvailableBadges();
 
+  Future<VisitorBadge> createBadge(String badgeNumber, DateTime createdAt);
+
+  Future<VisitorBadge> setBadgeUnavailable(String badgeId, bool unavailable);
+
   Future<Visit> checkIn(CheckInCommand command);
 
   Future<Visit> checkOut({

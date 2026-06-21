@@ -7,7 +7,9 @@ import '../../features/visits/presentation/pages/check_in_page.dart';
 import '../../features/visits/presentation/pages/active_visitors_page.dart';
 import '../../features/visits/presentation/pages/visitor_history_page.dart';
 import '../../features/reports/presentation/pages/reports_page.dart';
-import '../../shared/presentation/pages/module_page.dart';
+import '../../features/settings/presentation/pages/settings_page.dart';
+import '../../features/users/presentation/pages/users_page.dart';
+import '../../features/audit/presentation/pages/audit_logs_page.dart';
 import '../../shared/presentation/widgets/desktop_shell.dart';
 
 final appRouter = GoRouter(
@@ -30,27 +32,9 @@ final appRouter = GoRouter(
           builder: (_, _) => const VisitorHistoryPage(),
         ),
         GoRoute(path: '/reports', builder: (_, _) => const ReportsPage()),
-        GoRoute(
-          path: '/settings',
-          builder: (_, _) => const ModulePage(
-            title: 'Settings',
-            subtitle: 'Configure users, badges, and hostel preferences.',
-          ),
-        ),
-        GoRoute(
-          path: '/users',
-          builder: (_, _) => const ModulePage(
-            title: 'User Management',
-            subtitle: 'Manage staff accounts and role assignments.',
-          ),
-        ),
-        GoRoute(
-          path: '/audit-logs',
-          builder: (_, _) => const ModulePage(
-            title: 'Audit Logs',
-            subtitle: 'Review security and operational activity.',
-          ),
-        ),
+        GoRoute(path: '/settings', builder: (_, _) => const SettingsPage()),
+        GoRoute(path: '/users', builder: (_, _) => const UsersPage()),
+        GoRoute(path: '/audit-logs', builder: (_, _) => const AuditLogsPage()),
       ],
     ),
   ],

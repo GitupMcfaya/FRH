@@ -1,7 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../models/resident.dart';
+import '../../../../models/model_enums.dart';
 import '../../../../repositories/repository_providers.dart';
+import '../../../audit/presentation/controllers/audit_controller.dart';
 
 final residentsControllerProvider =
     AsyncNotifierProvider<ResidentsController, List<Resident>>(
@@ -24,6 +26,14 @@ class ResidentsController extends AsyncNotifier<List<Resident>> {
   Future<Resident> create(Resident resident) async {
     final created = await ref.read(residentRepositoryProvider).create(resident);
     state = AsyncData(_sorted([...?state.value, created]));
+    await ref
+        .read(auditControllerProvider.notifier)
+        .record(
+          action: AuditAction.residentCreated,
+          entityType: AuditEntityType.resident,
+          entityId: created.id,
+          description: 'Created resident ${created.fullName}.',
+        );
     return created;
   }
 
@@ -35,6 +45,14 @@ class ResidentsController extends AsyncNotifier<List<Resident>> {
           if (item.id == updated.id) updated else item,
       ]),
     );
+    await ref
+        .read(auditControllerProvider.notifier)
+        .record(
+          action: AuditAction.residentUpdated,
+          entityType: AuditEntityType.resident,
+          entityId: updated.id,
+          description: 'Updated resident ${updated.fullName}.',
+        );
     return updated;
   }
 
@@ -48,6 +66,14 @@ class ResidentsController extends AsyncNotifier<List<Resident>> {
           if (item.id == updated.id) updated else item,
       ]),
     );
+    await ref
+        .read(auditControllerProvider.notifier)
+        .record(
+          action: AuditAction.residentDeactivated,
+          entityType: AuditEntityType.resident,
+          entityId: updated.id,
+          description: 'Deactivated resident ${updated.fullName}.',
+        );
     return updated;
   }
 
